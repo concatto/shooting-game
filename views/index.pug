@@ -1,0 +1,84 @@
+html
+  head
+    title Teste
+    meta(charset='utf-8')
+    link(rel='stylesheet', href='style.css')
+    script(src='https://cdn.socket.io/socket.io-1.4.5.js')
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js')
+    script(type='text/javascript').
+      var pass = [65, 69, 90, 65, 75, 77, 73]
+      var passIndex = 0;
+      var socket = io();
+
+      function toScreen(x, y) {
+        var screenWidth = $("#root").width();
+        var screenHeight = $("#root").height();
+        return {
+          x: (x * screenWidth),
+          y: (y * screenHeight)
+        };
+      }
+
+      function createEntity(className, style, id) {
+        //If id is not undefined, set the attribute data-id; otherwise, insert a space
+        var idAttribute = (id !== undefined) ? ' data-id="' + id + '" ' : ' ';
+        var entity = $('<div' + idAttribute + 'class="' + className + '"></div>');
+
+        $.each(style, function(key, value) {
+          entity.css(key, value)
+        });
+
+        return entity;
+      }
+
+      function sudo() {
+        $("#root").addClass("sudo");
+        socket.on("clickEvent", function(data) {
+          var coords = toScreen(data.x, data.y);
+          var offset = 20 / 2;
+
+          $("#root").append(createEntity("ball", {
+            "top": coords.y - offset,
+            "left": coords.x - offset
+          }));
+        });
+
+        socket.on("destroyed", function(id) {
+          $("div.enemy").filter(function() {
+            return $(this).data("id") == id;
+          }).remove();
+        });
+
+        socket.on("targetCreated", function(target) {
+          var position = toScreen(target.x, target.y);
+          var size = toScreen(target.width, target.height);
+          var entity = createEntity("enemy", {
+            "top": position.y,
+            "left": position.x,
+            "width": size.x,
+            "height": size.y,
+            "background-color": "hsl(" + target.hue + ", 100%, 40%)"
+          }, target.id);
+
+          $("#root").append(entity);
+        });
+      }
+
+      $(function() {
+        $("#root").on("mousedown touchstart", function(event) {
+          var width = $("#root").width();
+          var height = $("#root").height();
+
+          socket.emit("click", {x: (event.pageX / width), y: (event.pageY / height)});
+        });
+
+        $("#root").on("keydown", function(event) {
+          passIndex = (event.keyCode === pass[passIndex]) ? passIndex + 1 : 0;
+          if (passIndex === pass.length) {
+            sudo();
+          }
+        });
+      });
+
+  body
+    #root(tabindex='1')

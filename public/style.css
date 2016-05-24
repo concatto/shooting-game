@@ -1,0 +1,29 @@
+body, html {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#root.sudo {
+  background-color: #DDFFBB;
+}
+
+.ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #442323;
+}
+
+.enemy {
+  position: absolute;
+  background-color: #232344;
+}
